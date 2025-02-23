@@ -38,9 +38,7 @@ export default Users;
 
 export const getStaticProps: GetStaticProps<Props> = async () => {
   try {
-    const res = await fetch(
-      `https://next-project-two-five.vercel.app/api/users`
-    );
+    const res = await fetch("/api/users");
     if (!res.ok) {
       throw new Error(`HTTP error! Status: ${res.status}`);
     }
