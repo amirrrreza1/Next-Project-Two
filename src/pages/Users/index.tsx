@@ -1,4 +1,26 @@
 import { GetStaticProps } from "next";
+import { useState } from "react";
+import { supabase } from "../../lib/supabaseClient";
+import Link from "next/link";
+
+export const getStaticProps: GetStaticProps = async () => {
+  const { data: approvedUsers, error } = await supabase
+    .from("users")
+    .select("*")
+    .order("id", { ascending: false });
+
+  if (error) {
+    console.error("❌ خطا در دریافت کاربران تایید شده:", error);
+    return { props: { initialApprovedUsers: [] } };
+  }
+
+  return {
+    props: { initialApprovedUsers: approvedUsers || [] },
+    revalidate: 60 * 60 * 24, // بازسازی صفحه هر ۲۴ ساعت در صورت عدم فراخوانی دستی
+  };
+};
+
+
 
 type User = {
   id: number;
@@ -7,55 +29,51 @@ type User = {
 };
 
 type Props = {
-  users: User[];
+  initialApprovedUsers: User[];
 };
 
-const Users = ({ users }: Props) => {
+const HomePage = ({ initialApprovedUsers }: Props) => {
+  const [approvedUsers, setApprovedUsers] =
+    useState<User[]>(initialApprovedUsers);
+
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Users</h1>
-      {users.length > 0 ? (
-        <ul className="space-y-2">
-          {users.map((user) => (
-            <li key={user.id} className="p-2 border rounded">
-              <p>
-                <strong>Name:</strong> {user.name}
-              </p>
-              <p>
-                <strong>Email:</strong> {user.email}
-              </p>
+    <div className="p-6 max-w-3xl mx-auto">
+      <h1 className="text-3xl font-bold text-center mb-8">
+        لیست کاربران تایید شده
+      </h1>
+      <Link
+        href="/admin"
+        className="block text-center mb-6 text-blue-600 hover:underline"
+      >
+        رفتن به صفحه ادمین
+      </Link>
+
+      {approvedUsers.length > 0 ? (
+        <ul className="space-y-4">
+          {approvedUsers.map((user) => (
+            <li
+              key={user.id}
+              className="p-4 border rounded-lg shadow flex justify-between items-center"
+            >
+              <div>
+                <p>
+                  <strong>نام:</strong> {user.name}
+                </p>
+                <p>
+                  <strong>ایمیل:</strong> {user.email}
+                </p>
+                <p className="text-green-600 font-medium">
+                  وضعیت: تایید شده ✅
+                </p>
+              </div>
             </li>
           ))}
         </ul>
       ) : (
-        <p>No users found.</p>
+        <p className="text-center">هیچ کاربری تایید نشده است.</p>
       )}
     </div>
   );
 };
 
-export default Users;
-
-export const getStaticProps: GetStaticProps<Props> = async () => {
-  try {
-    const res = await fetch("/api/users");
-    if (!res.ok) {
-      throw new Error(`HTTP error! Status: ${res.status}`);
-    }
-    const data = await res.json();
-
-    return {
-      props: {
-        users: data.users,
-      },
-      revalidate: 60, // ⏳ بازسازی صفحه هر ۶۰ ثانیه (اختیاری)
-    };
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    return {
-      props: {
-        users: [],
-      },
-    };
-  }
-};
+export default HomePage;
