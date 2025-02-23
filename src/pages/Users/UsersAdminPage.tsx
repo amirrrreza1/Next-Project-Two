@@ -154,140 +154,144 @@ const AdminUsers = ({ initialTempUsers, initialApprovedUsers }: Props) => {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center">
-        پنل ادمین - مدیریت کاربران
-      </h1>
+    <div className="overflow-y-scroll" style={{ height: `calc(100vh - 140px)` }}>
+      <div className="p-6 max-w-3xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6 text-center">
+          پنل ادمین - مدیریت کاربران
+        </h1>
 
-      {/* فرم افزودن یا ویرایش کاربر */}
-      <form
-        onSubmit={handleAddOrEditUser}
-        className="space-y-4 border p-4 rounded-lg shadow"
-      >
-        <div>
-          <label className="block font-medium">نام:</label>
-          <input
-            type="text"
-            className="w-full p-2 border rounded"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="نام کاربر"
-            disabled={loading}
-          />
-        </div>
-        <div>
-          <label className="block font-medium">ایمیل:</label>
-          <input
-            type="email"
-            className="w-full p-2 border rounded"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="ایمیل کاربر"
-            disabled={loading}
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className={`w-full py-2 rounded text-white ${
-            loading ? "bg-gray-400" : "bg-green-500 hover:bg-green-600"
-          }`}
+        {/* فرم افزودن یا ویرایش کاربر */}
+        <form
+          onSubmit={handleAddOrEditUser}
+          className="space-y-4 border p-4 rounded-lg shadow"
         >
-          {editingUserId ? "ویرایش کاربر" : "افزودن به کاربران موقت"}
-        </button>
-      </form>
-
-      {/* لیست کاربران موقت */}
-      <div className="mt-10">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold">کاربران موقت</h2>
+          <div>
+            <label className="block font-medium">نام:</label>
+            <input
+              type="text"
+              className="w-full p-2 border rounded"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="نام کاربر"
+              disabled={loading}
+            />
+          </div>
+          <div>
+            <label className="block font-medium">ایمیل:</label>
+            <input
+              type="email"
+              className="w-full p-2 border rounded"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="ایمیل کاربر"
+              disabled={loading}
+            />
+          </div>
           <button
-            onClick={handleApproveAll}
+            type="submit"
             disabled={loading}
-            className={`py-2 px-4 rounded text-white ${
-              loading ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
+            className={`w-full py-2 rounded text-white ${
+              loading ? "bg-gray-400" : "bg-green-500 hover:bg-green-600"
             }`}
           >
-            تایید همه کاربران
+            {editingUserId ? "ویرایش کاربر" : "افزودن به کاربران موقت"}
           </button>
+        </form>
+
+        {/* لیست کاربران موقت */}
+        <div className="mt-10">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold">کاربران موقت</h2>
+            <button
+              onClick={handleApproveAll}
+              disabled={loading}
+              className={`py-2 px-4 rounded text-white ${
+                loading ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
+              }`}
+            >
+              تایید همه کاربران
+            </button>
+          </div>
+
+          {tempUsers.length > 0 ? (
+            <ul className="space-y-4">
+              {tempUsers.map((user) => (
+                <li
+                  key={user.id}
+                  className="p-4 border rounded-lg flex justify-between items-center"
+                >
+                  <div>
+                    <p>
+                      <strong>نام:</strong> {user.name}
+                    </p>
+                    <p>
+                      <strong>ایمیل:</strong> {user.email}
+                    </p>
+                    <p>
+                      <strong>وضعیت:</strong> در انتظار تایید
+                    </p>
+                  </div>
+                  <div className="space-x-2">
+                    <button
+                      onClick={() => handleApproveUser(user.id)}
+                      disabled={loading}
+                      className={`py-1 px-3 rounded text-white ${
+                        loading
+                          ? "bg-gray-400"
+                          : "bg-blue-500 hover:bg-blue-600"
+                      }`}
+                    >
+                      تایید
+                    </button>
+                    <button
+                      onClick={() => startEditing(user)}
+                      className="py-1 px-3 rounded text-white bg-yellow-500 hover:bg-yellow-600"
+                    >
+                      ویرایش
+                    </button>
+                    <button
+                      onClick={() => handleDeleteUser(user.id)}
+                      className="py-1 px-3 rounded text-white bg-red-500 hover:bg-red-600"
+                    >
+                      حذف
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>هیچ کاربری در لیست موقت نیست.</p>
+          )}
         </div>
 
-        {tempUsers.length > 0 ? (
-          <ul className="space-y-4">
-            {tempUsers.map((user) => (
-              <li
-                key={user.id}
-                className="p-4 border rounded-lg flex justify-between items-center"
-              >
-                <div>
-                  <p>
-                    <strong>نام:</strong> {user.name}
-                  </p>
-                  <p>
-                    <strong>ایمیل:</strong> {user.email}
-                  </p>
-                  <p>
-                    <strong>وضعیت:</strong> در انتظار تایید
-                  </p>
-                </div>
-                <div className="space-x-2">
-                  <button
-                    onClick={() => handleApproveUser(user.id)}
-                    disabled={loading}
-                    className={`py-1 px-3 rounded text-white ${
-                      loading ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
-                    }`}
-                  >
-                    تایید
-                  </button>
-                  <button
-                    onClick={() => startEditing(user)}
-                    className="py-1 px-3 rounded text-white bg-yellow-500 hover:bg-yellow-600"
-                  >
-                    ویرایش
-                  </button>
-                  <button
-                    onClick={() => handleDeleteUser(user.id)}
-                    className="py-1 px-3 rounded text-white bg-red-500 hover:bg-red-600"
-                  >
-                    حذف
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>هیچ کاربری در لیست موقت نیست.</p>
-        )}
-      </div>
-
-      {/* لیست کاربران تایید شده */}
-      <div className="mt-16">
-        <h2 className="text-2xl font-semibold mb-4">کاربران تایید شده</h2>
-        {approvedUsers.length > 0 ? (
-          <ul className="space-y-4">
-            {approvedUsers.map((user) => (
-              <li
-                key={user.id}
-                className="p-4 border rounded-lg flex justify-between items-center"
-              >
-                <div>
-                  <p>
-                    <strong>نام:</strong> {user.name}
-                  </p>
-                  <p>
-                    <strong>ایمیل:</strong> {user.email}
-                  </p>
-                  <p>
-                    <strong>وضعیت:</strong> تایید شده
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>هیچ کاربری تایید نشده است.</p>
-        )}
+        {/* لیست کاربران تایید شده */}
+        <div className="mt-16">
+          <h2 className="text-2xl font-semibold mb-4">کاربران تایید شده</h2>
+          {approvedUsers.length > 0 ? (
+            <ul className="space-y-4">
+              {approvedUsers.map((user) => (
+                <li
+                  key={user.id}
+                  className="p-4 border rounded-lg flex justify-between items-center"
+                >
+                  <div>
+                    <p>
+                      <strong>نام:</strong> {user.name}
+                    </p>
+                    <p>
+                      <strong>ایمیل:</strong> {user.email}
+                    </p>
+                    <p>
+                      <strong>وضعیت:</strong> تایید شده
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>هیچ کاربری تایید نشده است.</p>
+          )}
+        </div>
       </div>
     </div>
   );

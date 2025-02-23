@@ -74,70 +74,72 @@ const UsersLocalStorage = () => {
   };
 
   return (
-    <div className="p-6 max-w-xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center">مدیریت کاربران</h1>
+    <div className="overflow-y-scroll" style={{ height: `calc(100vh - 140px)` }}>
+      <div className="p-6 max-w-xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6 text-center">مدیریت کاربران</h1>
 
-      {/* 📝 فرم افزودن کاربر */}
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4 border p-4 rounded-lg shadow"
-      >
-        <div>
-          <label className="block font-medium">نام:</label>
-          <input
-            type="text"
-            className="w-full p-2 border rounded"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="نام کاربر"
-          />
-        </div>
-        <div>
-          <label className="block font-medium">ایمیل:</label>
-          <input
-            type="email"
-            className="w-full p-2 border rounded"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="ایمیل کاربر"
-          />
-        </div>
-        <button
-          type="submit"
-          className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600 transition"
+        {/* 📝 فرم افزودن کاربر */}
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 border p-4 rounded-lg shadow"
         >
-          افزودن کاربر
-        </button>
-      </form>
-
-      {/* 📃 لیست کاربران */}
-      <div className="mt-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold">لیست کاربران</h2>
+          <div>
+            <label className="block font-medium">نام:</label>
+            <input
+              type="text"
+              className="w-full p-2 border rounded"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="نام کاربر"
+            />
+          </div>
+          <div>
+            <label className="block font-medium">ایمیل:</label>
+            <input
+              type="email"
+              className="w-full p-2 border rounded"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="ایمیل کاربر"
+            />
+          </div>
           <button
-            onClick={handleRefresh}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+            type="submit"
+            className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600 transition"
           >
-            بازنشانی لیست
+            افزودن کاربر
           </button>
-        </div>
+        </form>
 
-        {users.length > 0 ? (
-          <ul className="space-y-4">
-            {users.map((user) => (
-              <li key={user.id} className="p-4 border rounded-lg">
-                <p>
-                  <strong>نام:</strong> {user.name}
-                </p>
-                <p>
-                  <strong>ایمیل:</strong> {user.email}
-                </p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>هیچ کاربری یافت نشد.</p>
-        )}
+        {/* 📃 لیست کاربران */}
+        <div className="mt-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold">لیست کاربران</h2>
+            <button
+              onClick={handleRefresh}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+            >
+              بازنشانی لیست
+            </button>
+          </div>
+
+          {users.length > 0 ? (
+            <ul className="space-y-4">
+              {users.map((user) => (
+                <li key={user.id} className="p-4 border rounded-lg">
+                  <p>
+                    <strong>نام:</strong> {user.name}
+                  </p>
+                  <p>
+                    <strong>ایمیل:</strong> {user.email}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>هیچ کاربری یافت نشد.</p>
+          )}
+        </div>
       </div>
     </div>
   );
