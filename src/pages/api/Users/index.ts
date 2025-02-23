@@ -7,12 +7,11 @@ export default async function handler(
 ) {
   const { method } = req;
 
-  if (method === "GET") {
-    const { data, error } = await supabase.from("users").select("*");
-    if (error) return res.status(400).json({ error });
-    return res.status(200).json(data);
-  }
-
+if (method === "GET") {
+  const { data, error } = await supabase.from("users").select("*");
+  if (error) return res.status(400).json({ error });
+  return res.status(200).json({ users: data }); // ✅ داده‌ها در users
+}
   if (method === "POST") {
     const { name, email } = req.body;
     const { data, error } = await supabase
