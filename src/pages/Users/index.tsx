@@ -1,7 +1,6 @@
 import { GetStaticProps } from "next";
 import { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
-import Link from "next/link";
 
 type User = {
   id: number;
@@ -14,14 +13,11 @@ type Props = {
 };
 
 const HomePage = ({ initialApprovedUsers }: Props) => {
-  const [approvedUsers, setApprovedUsers] =
+  const [approvedUsers] =
     useState<User[]>(initialApprovedUsers);
 
   return (
-    <div
-      className="overflow-y-scroll"
-      style={{ height: `calc(100vh - 140px)` }}
-    >
+
       <div className="p-6 max-w-3xl mx-auto ">
         <h1 className="text-3xl font-bold text-center mb-8">Users List</h1>
 
@@ -44,10 +40,9 @@ const HomePage = ({ initialApprovedUsers }: Props) => {
             ))}
           </ul>
         ) : (
-          <p className="text-center">هیچ کاربری تایید نشده است.</p>
+          <p className="text-center">No users found.</p>
         )}
       </div>
-    </div>
   );
 };
 
@@ -60,12 +55,12 @@ export const getStaticProps: GetStaticProps = async () => {
     .order("id", { ascending: false });
 
   if (error) {
-    console.error("❌ خطا در دریافت کاربران تایید شده:", error);
+    console.error("Error fetching users:", error);
     return { props: { initialApprovedUsers: [] } };
   }
 
   return {
     props: { initialApprovedUsers: approvedUsers || [] },
-    revalidate: 60 * 60 * 24, // بازسازی صفحه هر ۲۴ ساعت در صورت عدم فراخوانی دستی
+    revalidate: false
   };
 };

@@ -21,44 +21,93 @@ const AdminUsers = ({ initialTempUsers, initialApprovedUsers }: Props) => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleAddOrEditUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim())
-      return alert("لطفا نام و ایمیل معتبر وارد کنید.");
+      return alert("Please enter both name and email.");
     setLoading(true);
 
     try {
+      setLoading(true);
+
       if (editingUserId) {
+        // تشخیص اینکه کاربر در کدام لیست است
+        const isTempUser = tempUsers.some((user) => user.id === editingUserId);
+        const tableName = isTempUser ? "TemporaryUsers" : "users";
+        const setState = isTempUser ? setTempUsers : setApprovedUsers;
+
+        // ویرایش کاربر در دیتابیس
         const { error } = await supabase
-          .from("TemporaryUsers")
+          .from(tableName)
           .update({ name, email })
           .eq("id", editingUserId);
-        if (!error) {
-          setTempUsers((prev) =>
+
+        if (error) {
+          console.error("Update error:", error);
+          alert("Failed to update user.");
+        } else {
+          // آپدیت کاربر در استیت
+          setState((prev) =>
             prev.map((user) =>
               user.id === editingUserId ? { ...user, name, email } : user
             )
           );
           setEditingUserId(null);
+          alert("User updated successfully!");
         }
       } else {
+        // افزودن کاربر جدید
         const emailExists =
           tempUsers.some((user) => user.email === email) ||
           approvedUsers.some((user) => user.email === email);
-        if (emailExists) return alert("این ایمیل قبلاً ثبت شده است.");
+
+        if (emailExists) {
+          alert("This email is already in use.");
+          return;
+        }
 
         const { data, error } = await supabase
           .from("TemporaryUsers")
           .insert([{ name, email }])
           .select()
           .single();
-        if (!error && data) setTempUsers((prev) => [data, ...prev]);
+
+        if (error) {
+          console.error("Insertion error:", error);
+          alert("Failed to add user.");
+        } else if (data) {
+          setTempUsers((prev) => [data, ...prev]);
+          alert("User added successfully!");
+        }
       }
+
+      // پاک کردن فیلدهای ورودی پس از عملیات موفق
       setName("");
       setEmail("");
     } catch (err) {
-      console.error("❌ خطا:", err);
+      console.error("Unexpected error:", err);
+      alert("An unexpected error occurred.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRevalidate = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/revalidate", { method: "POST" });
+      const data = await response.json();
+
+      if (data.revalidated) {
+        alert("بیلد مجدد با موفقیت انجام شد.");
+      } else {
+        alert("بیلد ناموفق بود. دوباره تلاش کنید.");
+      }
+    } catch (error) {
+      console.error("Revalidation failed:", error);
+      alert("خطا در انجام بیلد.");
     } finally {
       setLoading(false);
     }
@@ -90,7 +139,7 @@ const AdminUsers = ({ initialTempUsers, initialApprovedUsers }: Props) => {
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log("Revalidation successful", data); // بررسی اینکه پاسخ دریافتی چیست
+          console.log("Revalidation successful", data);
         })
         .catch((error) => {
           console.error("Revalidation failed", error); // خطای احتمالی را نشان دهید
@@ -102,8 +151,7 @@ const AdminUsers = ({ initialTempUsers, initialApprovedUsers }: Props) => {
   const handleApproveAll = async () => {
     setLoading(true);
     const usersToApprove = tempUsers;
-    if (usersToApprove.length === 0)
-      return alert("کاربری برای تایید وجود ندارد.");
+    if (usersToApprove.length === 0) return alert("No users to approve.");
 
     const { data: approvedData, error: insertError } = await supabase
       .from("users")
@@ -127,17 +175,17 @@ const AdminUsers = ({ initialTempUsers, initialApprovedUsers }: Props) => {
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log("Revalidation successful", data); // بررسی اینکه پاسخ دریافتی چیست
+          console.log("Revalidation successful", data);
         })
         .catch((error) => {
-          console.error("Revalidation failed", error); // خطای احتمالی را نشان دهید
+          console.error("Revalidation failed", error);
         });
     }
     setLoading(false);
   };
 
   const handleDeleteUser = async (id: number) => {
-    if (!confirm("آیا از حذف این کاربر مطمئن هستید؟")) return;
+    if (!confirm("Are you sure you want to delete this user?")) return;
     setLoading(true);
     const { error } = await supabase
       .from("TemporaryUsers")
@@ -153,146 +201,193 @@ const AdminUsers = ({ initialTempUsers, initialApprovedUsers }: Props) => {
     setEditingUserId(user.id);
   };
 
-  return (
-    <div className="overflow-y-scroll" style={{ height: `calc(100vh - 140px)` }}>
-      <div className="p-6 max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-center">
-          پنل ادمین - مدیریت کاربران
-        </h1>
+  const handleDeleteApprovedUser = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this approved user?")) return;
+    setLoading(true);
+    const { error } = await supabase.from("users").delete().eq("id", id);
+    if (!error)
+      setApprovedUsers((prev) => prev.filter((user) => user.id !== id));
+    setLoading(false);
+  };
 
-        {/* فرم افزودن یا ویرایش کاربر */}
-        <form
-          onSubmit={handleAddOrEditUser}
-          className="space-y-4 border p-4 rounded-lg shadow"
-        >
-          <div>
-            <label className="block font-medium">نام:</label>
-            <input
-              type="text"
-              className="w-full p-2 border rounded"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="نام کاربر"
-              disabled={loading}
-            />
-          </div>
-          <div>
-            <label className="block font-medium">ایمیل:</label>
-            <input
-              type="email"
-              className="w-full p-2 border rounded"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="ایمیل کاربر"
-              disabled={loading}
-            />
-          </div>
-          <button
-            type="submit"
+  const startEditingApprovedUser = (user: User) => {
+    setName(user.name);
+    setEmail(user.email);
+    setEditingUserId(user.id);
+  };
+
+  return (
+    <div className="p-6 max-w-3xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6 text-center">Admin Panel</h1>
+
+      <form
+        onSubmit={handleAddOrEditUser}
+        className="space-y-4 border p-4 rounded-lg shadow"
+      >
+        <div>
+          <label className="block font-medium">Name:</label>
+          <input
+            type="text"
+            className="w-full p-2 border rounded"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="User name"
             disabled={loading}
-            className={`w-full py-2 rounded text-white ${
-              loading ? "bg-gray-400" : "bg-green-500 hover:bg-green-600"
+          />
+        </div>
+        <div>
+          <label className="block font-medium">Email:</label>
+          <input
+            type="email"
+            className="w-full p-2 border rounded"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="User email"
+            disabled={loading}
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className={`w-full py-2 rounded text-white ${
+            loading ? "bg-gray-400" : "bg-green-500 hover:bg-green-600"
+          }`}
+        >
+          {editingUserId ? "Submit" : "Add"}
+        </button>
+      </form>
+
+      {/* لیست کاربران موقت */}
+      <div className="mt-10">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold">Not Approved Users</h2>
+          <button
+            onClick={handleApproveAll}
+            disabled={loading}
+            className={`py-2 px-4 rounded text-white ${
+              loading ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
             }`}
           >
-            {editingUserId ? "ویرایش کاربر" : "افزودن به کاربران موقت"}
+            Approve All
           </button>
-        </form>
+        </div>
 
-        {/* لیست کاربران موقت */}
-        <div className="mt-10">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold">کاربران موقت</h2>
-            <button
-              onClick={handleApproveAll}
-              disabled={loading}
-              className={`py-2 px-4 rounded text-white ${
-                loading ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
-              }`}
-            >
-              تایید همه کاربران
-            </button>
-          </div>
+        {tempUsers.length > 0 ? (
+          <ul className="space-y-4">
+            {tempUsers.map((user) => (
+              <li
+                key={user.id}
+                className="p-4 border rounded-lg flex justify-between items-center"
+              >
+                <div>
+                  <p>
+                    <strong>Name:</strong> {user.name}
+                  </p>
+                  <p>
+                    <strong>Email:</strong> {user.email}
+                  </p>
+                  <p>
+                    <strong>Status:</strong> Pending Approval
+                  </p>
+                </div>
+                <div className="space-x-2">
+                  <button
+                    onClick={() => handleApproveUser(user.id)}
+                    disabled={loading}
+                    className={`py-1 px-3 rounded text-white ${
+                      loading ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
+                    }`}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => startEditing(user)}
+                    className="py-1 px-3 rounded text-white bg-yellow-500 hover:bg-yellow-600"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteUser(user.id)}
+                    className="py-1 px-3 rounded text-white bg-red-500 hover:bg-red-600"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No User in Temprary Users List.</p>
+        )}
+      </div>
 
-          {tempUsers.length > 0 ? (
-            <ul className="space-y-4">
-              {tempUsers.map((user) => (
+      {/* لیست کاربران تایید شده */}
+      <div className="mt-16">
+        <h2 className="text-2xl font-semibold mb-4">Approved Users</h2>
+
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Search approved users..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+        {approvedUsers.length > 0 ? (
+          <ul className="space-y-4">
+            {approvedUsers
+              .filter(
+                (user) =>
+                  user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  user.email.toLowerCase().includes(searchTerm.toLowerCase())
+              )
+              .map((user) => (
                 <li
                   key={user.id}
                   className="p-4 border rounded-lg flex justify-between items-center"
                 >
                   <div>
                     <p>
-                      <strong>نام:</strong> {user.name}
+                      <strong>Name:</strong> {user.name}
                     </p>
                     <p>
-                      <strong>ایمیل:</strong> {user.email}
+                      <strong>Email:</strong> {user.email}
                     </p>
                     <p>
-                      <strong>وضعیت:</strong> در انتظار تایید
+                      <strong>Status:</strong> Approved
                     </p>
                   </div>
                   <div className="space-x-2">
                     <button
-                      onClick={() => handleApproveUser(user.id)}
-                      disabled={loading}
-                      className={`py-1 px-3 rounded text-white ${
-                        loading
-                          ? "bg-gray-400"
-                          : "bg-blue-500 hover:bg-blue-600"
-                      }`}
-                    >
-                      تایید
-                    </button>
-                    <button
-                      onClick={() => startEditing(user)}
+                      onClick={() => startEditingApprovedUser(user)}
                       className="py-1 px-3 rounded text-white bg-yellow-500 hover:bg-yellow-600"
                     >
-                      ویرایش
+                      Edit
                     </button>
                     <button
-                      onClick={() => handleDeleteUser(user.id)}
+                      onClick={() => handleDeleteApprovedUser(user.id)}
                       className="py-1 px-3 rounded text-white bg-red-500 hover:bg-red-600"
                     >
-                      حذف
+                      Delete
                     </button>
                   </div>
                 </li>
               ))}
-            </ul>
-          ) : (
-            <p>هیچ کاربری در لیست موقت نیست.</p>
-          )}
-        </div>
-
-        {/* لیست کاربران تایید شده */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-semibold mb-4">کاربران تایید شده</h2>
-          {approvedUsers.length > 0 ? (
-            <ul className="space-y-4">
-              {approvedUsers.map((user) => (
-                <li
-                  key={user.id}
-                  className="p-4 border rounded-lg flex justify-between items-center"
-                >
-                  <div>
-                    <p>
-                      <strong>نام:</strong> {user.name}
-                    </p>
-                    <p>
-                      <strong>ایمیل:</strong> {user.email}
-                    </p>
-                    <p>
-                      <strong>وضعیت:</strong> تایید شده
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>هیچ کاربری تایید نشده است.</p>
-          )}
-        </div>
+          </ul>
+        ) : (
+          <p>No Approved Users.</p>
+        )}
       </div>
+      <button
+        onClick={handleRevalidate}
+        disabled={loading}
+        className={`w-full py-2 mt-6 rounded text-white ${
+          loading ? "bg-gray-400" : "bg-purple-500 hover:bg-purple-600"
+        }`}
+      >
+        تأیید تغییرات و بیلد مجدد
+      </button>
     </div>
   );
 };
@@ -308,7 +403,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
     .order("id", { ascending: false });
 
   if (tempError || approvedError) {
-    console.error("❌ خطا در دریافت کاربران:", tempError || approvedError);
+    console.error("Error fetching users:", tempError || approvedError);
     return { props: { initialTempUsers: [], initialApprovedUsers: [] } };
   }
 

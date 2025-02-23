@@ -41,8 +41,8 @@ const UsersLayout = ({ children }: UsersLayoutProps) => {
 
   return (
     <>
-      <header className="bg-red-500 text-white h-fit min-h-[60px] w-[95%] lg:w-[80%] text-sm md:text-base m-auto my-[10px] rounded-lg flex justify-center items-center px-3">
-        <nav>
+      <header className="bg-white h-fit min-h-[60px] m-auto pt-[10px] px-3 sticky top-0 z-50">
+        <nav className="bg-red-500  text-white w-[95%] lg:w-[80%] text-sm md:text-base m-auto rounded-lg flex justify-center items-center">
           <ul className="flex gap-4 ">
             {NAV.map((nav) => (
               <Link
@@ -60,12 +60,6 @@ const UsersLayout = ({ children }: UsersLayoutProps) => {
       </header>
 
       <main>{children}</main>
-
-      <footer className="bg-red-500 text-white h-[60px] flex justify-center items-center">
-        <h1>
-          This page is Created by Amirreza Azarioun
-        </h1>
-      </footer>
     </>
   );
 };

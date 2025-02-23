@@ -15,8 +15,8 @@ interface MainLayoutProps {
 
 const NAV: NavItem[] = [
   { name: "Home", href: "/" },
-    { name: "Posts", href: "/Posts" },
-    { name: "Users", href: "/Users" },
+  { name: "Posts", href: "/Posts" },
+  { name: "Users", href: "/Users" },
 ];
 
 const MainLayout = ({ children }: MainLayoutProps) => {
@@ -24,33 +24,24 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
   return (
     <>
-      <header className="bg-blue-500 text-white h-[60px] flex justify-between items-center px-3">
-        <h1 className="text-xl font-bold">Main Layout</h1>
-        <nav>
-          <ul className="flex gap-4">
+      <header className="bg-white h-fit min-h-[60px] m-auto pt-[10px] px-3 sticky top-0 z-50">
+        <nav className="bg-blue-500  text-white w-[95%] lg:w-[80%] text-sm md:text-base m-auto rounded-lg flex justify-center items-center">
+          <ul className="flex gap-4 ">
             {NAV.map((nav) => (
-              <li key={nav.href}>
-                <Link
-                  href={nav.href}
-                  className={`${
-                    pathname === nav.href
-                      ? "text-yellow-300 font-semibold"
-                      : "text-white"
-                  } hover:text-yellow-200 transition-colors`}
-                >
-                  {nav.name}
-                </Link>
-              </li>
+              <Link
+                href={nav.href}
+                key={nav.href}
+                className={`${
+                  pathname === nav.href ? "border-b-2" : "opacity-50"
+                } hover:opacity-80 !h-[60px] leading-[60px]`}
+              >
+                {nav.name}
+              </Link>
             ))}
           </ul>
         </nav>
       </header>
-
-      <main className="p-4">{children}</main>
-
-      <footer className="bg-blue-500 text-white h-[60px] flex justify-center items-center">
-        <h1 className="text-lg font-medium">Footer</h1>
-      </footer>
+      <main>{children}</main>
     </>
   );
 };
