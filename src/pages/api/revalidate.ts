@@ -9,7 +9,7 @@ export default async function handler(
   }
 
   try {
-    await res.revalidate("/Users"); // Replace with your page path
+    await res.revalidate("/Users");
     return res.json({ revalidated: true });
   } catch (err) {
     console.error("Revalidation error:", err);

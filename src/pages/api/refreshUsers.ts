@@ -1,20 +1,19 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { supabase } from "../../lib/supabaseClient";
+// pages/api/refreshUsers.ts
+import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method Not Allowed" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method Not Allowed" });
   }
 
-  const { data, error } = await supabase.from("users").select("*");
-
-  if (error) {
-    console.error("Error fetching users:", error);
-    return res.status(500).json({ error: "Error fetching users." });
+  try {
+    await res.revalidate("/Users/UsersGetStaticProps");
+    return res.json({ revalidated: true });
+  } catch (err) {
+    console.error("Revalidation error:", err);
+    return res.status(500).json({ revalidated: false, error: err });
   }
-
-  res.status(200).json(data);
 }

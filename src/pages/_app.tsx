@@ -8,10 +8,8 @@ import UsersLayout from "@/Components/Layout/UsersLayout";
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
-  // لیست مسیرهایی که باید از SpecialLayout استفاده کنن
   const specialRoutes = ["/Users" , "/Users/UsersLocalStorage" , "/Users/UsersGetStaticProps" , "/Users/UsersAdminPage"];
 
-  // بررسی اینکه مسیر فعلی جزو specialRoutes هست یا نه
   const isSpecialRoute = specialRoutes.includes(router.pathname);
 
   return isSpecialRoute ? (

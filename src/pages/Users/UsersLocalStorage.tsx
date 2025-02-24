@@ -1,4 +1,3 @@
-// pages/users.tsx
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
@@ -14,80 +13,84 @@ const UsersLocalStorage = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
+  const [isUsersFetched, setIsUsersFetched] = useState<boolean>(false);
 
-  // ✅ Fetch users on initial load and cache them in localStorage
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase.from("users").select("*");
+      if (error) {
+        console.error("Error fetching users:", error);
+      } else if (data) {
+        setUsers(data);
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+        setIsUsersFetched(true);
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+    }
+  };
+
   useEffect(() => {
     const cachedUsers = localStorage.getItem(LOCAL_STORAGE_KEY);
-
     if (cachedUsers) {
       setUsers(JSON.parse(cachedUsers));
+      setIsUsersFetched(true);
     } else {
-      const fetchUsers = async () => {
-        const { data, error } = await supabase.from("users").select("*");
-        if (error) {
-          console.error("❌ Error fetching users:", error);
-        } else {
-          setUsers(data ?? []);
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-        }
-      };
-
       fetchUsers();
     }
   }, []);
 
-  // 🛠️ Add a new user
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email) {
-      alert("Please enter both name and email.");
+      alert("Please enter name and email.");
       return;
     }
 
-    const { error } = await supabase.from("users").insert([{ name, email }]);
-    if (error) {
-      console.error("❌ Error adding user:", error);
-    } else {
-      alert("✅ User added! Click refresh to see the updated list.");
-      setName("");
-      setEmail("");
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .insert([{ name, email }])
+        .select();
+      if (error) {
+        console.error("❌ Error adding user:", error);
+        alert("Error while adding user");
+      } else if (data && data.length > 0) {
+        const newUser = data[0];
+        const updatedUsers = [...users, newUser];
+        setUsers(updatedUsers);
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedUsers));
+        setName("");
+        setEmail("");
+        alert("Added user successfully!");
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      alert("Unexpected error while adding user");
     }
   };
 
-  // 🔄 Refresh user list and update localStorage
   const handleRefresh = async () => {
-    try {
-      const response = await fetch("/api/refreshUsers");
-      const data = await response.json();
-
-      if (response.ok) {
-        setUsers(data);
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-      } else {
-        console.error("❌ Error refreshing users:", data.error);
-      }
-    } catch (err) {
-      console.error("❌ Error connecting to the server:", err);
-    }
+    await fetchUsers();
+    alert("Refreshed the list of users successfully!");
   };
 
   return (
     <div className="p-6 max-w-xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-center">User Management</h1>
 
-      {/* 📝 Add User Form */}
       <form
         onSubmit={handleSubmit}
         className="space-y-4 border p-4 rounded-lg shadow"
       >
         <div>
-          <label className="block font-medium">Name:</label>
+          <label className="block font-medium">نام:</label>
           <input
             type="text"
             className="w-full p-2 border rounded"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="User name"
+            placeholder="User Name"
           />
         </div>
         <div>
@@ -97,7 +100,7 @@ const UsersLocalStorage = () => {
             className="w-full p-2 border rounded"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="User email"
+            placeholder="User Email"
           />
         </div>
         <button
@@ -108,7 +111,6 @@ const UsersLocalStorage = () => {
         </button>
       </form>
 
-      {/* 📃 User List */}
       <div className="mt-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold">User List</h2>
@@ -116,11 +118,11 @@ const UsersLocalStorage = () => {
             onClick={handleRefresh}
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
           >
-            Refresh List
+            Refresh
           </button>
         </div>
 
-        {users.length > 0 ? (
+        {isUsersFetched && users.length > 0 ? (
           <ul className="space-y-4">
             {users.map((user) => (
               <li key={user.id} className="p-4 border rounded-lg">
@@ -134,7 +136,7 @@ const UsersLocalStorage = () => {
             ))}
           </ul>
         ) : (
-          <p>No users found.</p>
+          <p>User not found. Click "Refresh" to fetch the list.</p>
         )}
       </div>
     </div>
