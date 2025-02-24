@@ -84,7 +84,7 @@ const UsersLocalStorage = () => {
         className="space-y-4 border p-4 rounded-lg shadow"
       >
         <div>
-          <label className="block font-medium">نام:</label>
+          <label className="block font-medium">Name:</label>
           <input
             type="text"
             className="w-full p-2 border rounded"
