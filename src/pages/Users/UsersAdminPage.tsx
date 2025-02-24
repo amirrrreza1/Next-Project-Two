@@ -256,7 +256,7 @@ const AdminUsers = ({ initialTempUsers, initialApprovedUsers }: Props) => {
             {tempUsers.map((user) => (
               <li
                 key={user.id}
-                className="p-4 border rounded-lg flex justify-between items-center"
+                className="p-4 border rounded-lg flex flex-wrap gap-3 justify-between items-center"
               >
                 <div>
                   <p>
@@ -269,7 +269,7 @@ const AdminUsers = ({ initialTempUsers, initialApprovedUsers }: Props) => {
                     <strong>Status:</strong> Pending Approval
                   </p>
                 </div>
-                <div className="space-x-2">
+                <div className="space-x-2 w-[400px] sm:w-auto">
                   <button
                     onClick={() => handleApproveUser(user.id)}
                     className="py-1 px-3 rounded text-white bg-blue-500 hover:bg-blue-600"
