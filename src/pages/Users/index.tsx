@@ -1,6 +1,7 @@
 import { GetStaticProps } from "next";
 import { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import Head from "next/head";
 
 type User = {
   id: number;
@@ -17,7 +18,10 @@ const HomePage = ({ initialApprovedUsers }: Props) => {
     useState<User[]>(initialApprovedUsers);
 
   return (
-
+    <>
+      <Head>
+        <title>Users</title>
+      </Head>
       <div className="p-6 max-w-3xl mx-auto ">
         <h1 className="text-3xl font-bold text-center mb-8">Users List</h1>
 
@@ -43,6 +47,7 @@ const HomePage = ({ initialApprovedUsers }: Props) => {
           <p className="text-center">No users found.</p>
         )}
       </div>
+    </>
   );
 };
 

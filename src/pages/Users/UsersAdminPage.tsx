@@ -2,6 +2,7 @@ import { GetServerSideProps, GetStaticProps } from "next";
 import { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import Swal from "sweetalert2"; // Import SweetAlert2
+import Head from "next/head";
 
 type User = {
   id: number;
@@ -204,132 +205,63 @@ const AdminUsers = ({ initialTempUsers, initialApprovedUsers }: Props) => {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center">Admin Panel</h1>
+    <>
+      <Head>
+        <title>Admin Panel</title>
+      </Head>
+      <div className="p-6 max-w-3xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6 text-center">Admin Panel</h1>
 
-      <form
-        onSubmit={handleAddOrEditUser}
-        className="space-y-4 border p-4 rounded-lg shadow"
-      >
-        <div>
-          <label className="block font-medium">Name:</label>
-          <input
-            type="text"
-            className="w-full p-2 border rounded"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="User name"
-          />
-        </div>
-        <div>
-          <label className="block font-medium">Email:</label>
-          <input
-            type="email"
-            className="w-full p-2 border rounded"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="User email"
-          />
-        </div>
-        <button
-          type="submit"
-          className="w-full py-2 rounded text-white bg-green-500 hover:bg-green-600"
+        <form
+          onSubmit={handleAddOrEditUser}
+          className="space-y-4 border p-4 rounded-lg shadow"
         >
-          {editingUserId ? "Submit" : "Add"}
-        </button>
-      </form>
-
-      {/* لیست کاربران موقت */}
-      <div className="mt-10">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="md:text-2xl font-semibold">Not Approved Users</h2>
+          <div>
+            <label className="block font-medium">Name:</label>
+            <input
+              type="text"
+              className="w-full p-2 border rounded"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="User name"
+            />
+          </div>
+          <div>
+            <label className="block font-medium">Email:</label>
+            <input
+              type="email"
+              className="w-full p-2 border rounded"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="User email"
+            />
+          </div>
           <button
-            onClick={handleApproveAll}
-            className="py-2 px-4 text-sm md:text-base rounded text-white bg-blue-500 hover:bg-blue-600"
+            type="submit"
+            className="w-full py-2 rounded text-white bg-green-500 hover:bg-green-600"
           >
-            Approve All
+            {editingUserId ? "Submit" : "Add"}
           </button>
-        </div>
+        </form>
 
-        {tempUsers.length > 0 ? (
-          <ul className="space-y-4">
-            {tempUsers.map((user) => (
-              <li
-                key={user.id}
-                className="p-4 border rounded-lg flex flex-wrap gap-3 justify-between items-center"
-              >
-                <div>
-                  <p>
-                    <strong>Name:</strong> {user.name}
-                  </p>
-                  <p>
-                    <strong>Email:</strong> {user.email}
-                  </p>
-                  <p>
-                    <strong>Status:</strong> Pending Approval
-                  </p>
-                </div>
-                <div className="space-x-2 w-[400px] sm:w-auto">
-                  <button
-                    onClick={() => handleApproveUser(user.id)}
-                    className="py-1 px-3 rounded text-white bg-blue-500 hover:bg-blue-600"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => startEditing(user)}
-                    className="py-1 px-3 rounded text-white bg-yellow-500 hover:bg-yellow-600"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteUser(user.id)}
-                    className="py-1 px-3 rounded text-white bg-red-500 hover:bg-red-600"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No User in Temporary Users List.</p>
-        )}
-      </div>
+        {/* لیست کاربران موقت */}
+        <div className="mt-10">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="md:text-2xl font-semibold">Not Approved Users</h2>
+            <button
+              onClick={handleApproveAll}
+              className="py-2 px-4 text-sm md:text-base rounded text-white bg-blue-500 hover:bg-blue-600"
+            >
+              Approve All
+            </button>
+          </div>
 
-      {/* لیست کاربران تایید شده */}
-      <div className="mt-16">
-        <div className="flex justify-between items-center">
-          <h2 className="md:text-2xl font-semibold mb-4">Approved Users</h2>
-          <button
-            onClick={handleRevalidate}
-            className="py-2 text-sm md:text-base px-4 rounded text-white bg-purple-500 hover:bg-purple-600"
-          >
-            Rebuild
-          </button>
-        </div>
-
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Search approved users..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full p-2 border rounded"
-          />
-        </div>
-        {approvedUsers.length > 0 ? (
-          <ul className="space-y-4">
-            {approvedUsers
-              .filter(
-                (user) =>
-                  user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  user.email.toLowerCase().includes(searchTerm.toLowerCase())
-              )
-              .map((user) => (
+          {tempUsers.length > 0 ? (
+            <ul className="space-y-4">
+              {tempUsers.map((user) => (
                 <li
                   key={user.id}
-                  className="p-4 border rounded-lg flex flex-wrap justify-between items-center gap-3"
+                  className="p-4 border rounded-lg flex flex-wrap gap-3 justify-between items-center"
                 >
                   <div>
                     <p>
@@ -338,16 +270,25 @@ const AdminUsers = ({ initialTempUsers, initialApprovedUsers }: Props) => {
                     <p>
                       <strong>Email:</strong> {user.email}
                     </p>
+                    <p>
+                      <strong>Status:</strong> Pending Approval
+                    </p>
                   </div>
                   <div className="space-x-2 w-[400px] sm:w-auto">
                     <button
-                      onClick={() => startEditingApprovedUser(user)}
+                      onClick={() => handleApproveUser(user.id)}
+                      className="py-1 px-3 rounded text-white bg-blue-500 hover:bg-blue-600"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => startEditing(user)}
                       className="py-1 px-3 rounded text-white bg-yellow-500 hover:bg-yellow-600"
                     >
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDeleteApprovedUser(user.id)}
+                      onClick={() => handleDeleteUser(user.id)}
                       className="py-1 px-3 rounded text-white bg-red-500 hover:bg-red-600"
                     >
                       Delete
@@ -355,12 +296,79 @@ const AdminUsers = ({ initialTempUsers, initialApprovedUsers }: Props) => {
                   </div>
                 </li>
               ))}
-          </ul>
-        ) : (
-          <p>No Approved Users.</p>
-        )}
+            </ul>
+          ) : (
+            <p>No User in Temporary Users List.</p>
+          )}
+        </div>
+
+        {/* لیست کاربران تایید شده */}
+        <div className="mt-16">
+          <div className="flex justify-between items-center">
+            <h2 className="md:text-2xl font-semibold mb-4">Approved Users</h2>
+            <button
+              onClick={handleRevalidate}
+              className="py-2 text-sm md:text-base px-4 rounded text-white bg-purple-500 hover:bg-purple-600"
+            >
+              Rebuild
+            </button>
+          </div>
+
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search approved users..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+          {approvedUsers.length > 0 ? (
+            <ul className="space-y-4">
+              {approvedUsers
+                .filter(
+                  (user) =>
+                    user.name
+                      .toLowerCase()
+                      .includes(searchTerm.toLowerCase()) ||
+                    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .map((user) => (
+                  <li
+                    key={user.id}
+                    className="p-4 border rounded-lg flex flex-wrap justify-between items-center gap-3"
+                  >
+                    <div>
+                      <p>
+                        <strong>Name:</strong> {user.name}
+                      </p>
+                      <p>
+                        <strong>Email:</strong> {user.email}
+                      </p>
+                    </div>
+                    <div className="space-x-2 w-[400px] sm:w-auto">
+                      <button
+                        onClick={() => startEditingApprovedUser(user)}
+                        className="py-1 px-3 rounded text-white bg-yellow-500 hover:bg-yellow-600"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteApprovedUser(user.id)}
+                        className="py-1 px-3 rounded text-white bg-red-500 hover:bg-red-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </li>
+                ))}
+            </ul>
+          ) : (
+            <p>No Approved Users.</p>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
